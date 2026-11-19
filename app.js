@@ -8,7 +8,7 @@
 // YOUR DISCORD WEBHOOK
 // Keep the real webhook private.
 // Use a secure backend such as Cloudflare Workers.
-const DISCORD_WEBHOOK_URL = "";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573054423121530923/2qSglFgGnZt9PAxwKr-I3WmMXDy6kMmqqhfDgpKLWBT3Pj8IeAyKJhbOnbesV0BwX49x";
 
 
 // ==========================================
