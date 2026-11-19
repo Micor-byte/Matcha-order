@@ -6,9 +6,9 @@
 
 
 // YOUR DISCORD WEBHOOK
-// Replace with your newly regenerated webhook.
-// Do not publish this URL in a public repository.
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573054423121530923/2qSglFgGnZt9PAxwKr-I3WmMXDy6kMmqqhfDgpKLWBT3Pj8IeAyKJhbOnbesV0BwX49x";
+// Keep the real webhook private.
+// Use a secure backend such as Cloudflare Workers.
+const DISCORD_WEBHOOK_URL = "";
 
 
 // ==========================================
@@ -176,6 +176,82 @@ function money(n) {
 
 
 // ==========================================
+// BROWSER BACK BUTTON NAVIGATION
+// ==========================================
+
+let drawerPage = "menu";
+
+function navigateDrawer(page, mode = "push", data = {}) {
+    drawerPage = page;
+
+    const state = {
+        caveMatcha: true,
+        page,
+        ...data
+    };
+
+    if (mode === "push") {
+        history.pushState(state, "", location.href);
+
+    } else if (mode === "replace") {
+        history.replaceState(state, "", location.href);
+    }
+}
+
+
+function hideDrawer() {
+    document.getElementById("overlay").classList.remove("show");
+
+    document.getElementById("drawer").classList.remove("show");
+
+    drawerPage = "menu";
+}
+
+
+function renderPreviousPage(state) {
+    if (!state || !state.caveMatcha) {
+        hideDrawer();
+        return;
+    }
+
+    switch (state.page) {
+
+        case "product":
+            openProduct(
+                state.productId,
+                state.editingIndex ?? -1,
+                true
+            );
+            break;
+
+        case "cart":
+            openCart(true);
+            break;
+
+        case "history":
+            openHistory(true);
+            break;
+
+        case "confirmation":
+            if (state.order) {
+                showOrderConfirmation(state.order, true);
+            } else {
+                hideDrawer();
+            }
+            break;
+
+        default:
+            hideDrawer();
+    }
+}
+
+
+window.addEventListener("popstate", event => {
+    renderPreviousPage(event.state);
+});
+
+
+// ==========================================
 // AUTOMATIC CATEGORY GENERATION
 // ==========================================
 
@@ -318,8 +394,10 @@ function renderProducts(category = currentCategory) {
 // PRODUCT CUSTOMISATION
 // ==========================================
 
-function openProduct(id, index = -1) {
-    selected = menu.find(product => product.id === id);
+function openProduct(id, index = -1, fromPop = false) {
+    selected = menu.find(
+        product => String(product.id) === String(id)
+    );
 
     if (!selected) return;
 
@@ -356,6 +434,15 @@ function openProduct(id, index = -1) {
 
     document.getElementById("drawerTitle").textContent =
         "CUSTOMISE YOUR DRINK";
+
+    navigateDrawer(
+        "product",
+        fromPop ? "none" : "push",
+        {
+            productId: selected.id,
+            editingIndex
+        }
+    );
 
     showDrawer();
 }
@@ -620,7 +707,7 @@ function updateCart() {
 // OPEN CART
 // ==========================================
 
-function openCart() {
+function openCart(fromPop = false, replace = false) {
     editingIndex = -1;
 
     document.getElementById("drawerTitle").textContent =
@@ -636,10 +723,11 @@ function openCart() {
             ? `
                 ${cart.map((item, index) => {
                     const product = menu.find(
-                        p => p.id === item.id
+                        p => String(p.id) === String(item.id)
                     );
 
                     const image = item.image || product?.image || "";
+                    const itemOptions = item.options || {};
 
                     return `
                         <div class="cart-item">
@@ -657,18 +745,18 @@ function openCart() {
 
                                 <p>
                                     Regular ·
-                                    ${item.options.sweet} sweetness ·
-                                    ${item.options.ice} ice
+                                    ${itemOptions.sweet || "Normal"} sweetness ·
+                                    ${itemOptions.ice || "Regular"} ice
                                 </p>
 
-                                ${item.options.powder ? `
+                                ${itemOptions.powder ? `
                                     <p>
-                                        Matcha powder: ${item.options.powder}
+                                        Matcha powder: ${itemOptions.powder}
                                     </p>
                                 ` : ""}
 
                                 <p>
-                                    ${item.options.addons.join(", ") || "No add-ons"}
+                                    ${(itemOptions.addons || []).join(", ") || "No add-ons"}
                                 </p>
 
                                 <div class="price">
@@ -718,6 +806,11 @@ function openCart() {
 
     `;
 
+    navigateDrawer(
+        "cart",
+        fromPop ? "none" : replace ? "replace" : "push"
+    );
+
     showDrawer();
 }
 
@@ -744,7 +837,7 @@ function removeCart(index) {
 
     updateCart();
 
-    openCart();
+    openCart(false, true);
 }
 
 
@@ -756,19 +849,21 @@ async function sendDiscordOrder(order) {
 
     const itemsText = order.items.map(item => {
 
-        const addons = item.options.addons.length
-            ? `\nAdd-ons: ${item.options.addons.join(", ")}`
+        const itemOptions = item.options || {};
+
+        const addons = (itemOptions.addons || []).length
+            ? `\nAdd-ons: ${itemOptions.addons.join(", ")}`
             : "";
 
-        const powder = item.options.powder
-            ? `\nMatcha powder: ${item.options.powder}`
+        const powder = itemOptions.powder
+            ? `\nMatcha powder: ${itemOptions.powder}`
             : "";
 
         return (
             `**${item.qty}x ${item.name}**\n` +
             `Regular | ` +
-            `${item.options.sweet} sweetness | ` +
-            `${item.options.ice} ice` +
+            `${itemOptions.sweet || "Normal"} sweetness | ` +
+            `${itemOptions.ice || "Regular"} ice` +
             powder +
             addons
         );
@@ -849,11 +944,7 @@ async function sendDiscordOrder(order) {
 async function checkout() {
     if (!cart.length) return;
 
-    if (
-        !DISCORD_WEBHOOK_URL ||
-        DISCORD_WEBHOOK_URL === "YOUR_DISCORD_WEBHOOK_URL" ||
-        DISCORD_WEBHOOK_URL === "YOUR_NEW_DISCORD_WEBHOOK_URL"
-    ) {
+    if (!DISCORD_WEBHOOK_URL) {
         alert("Please configure your Discord webhook URL first.");
         return;
     }
@@ -907,7 +998,7 @@ async function checkout() {
             error.message
         );
 
-        openCart();
+        openCart(false, true);
     }
 }
 
@@ -916,7 +1007,7 @@ async function checkout() {
 // ORDER CONFIRMATION
 // ==========================================
 
-function showOrderConfirmation(order) {
+function showOrderConfirmation(order, fromPop = false) {
     document.getElementById("drawerTitle").textContent =
         "ORDER CONFIRMED";
 
@@ -968,6 +1059,12 @@ function showOrderConfirmation(order) {
 
     `;
 
+    navigateDrawer(
+        "confirmation",
+        fromPop ? "none" : "replace",
+        { order }
+    );
+
     showDrawer();
 }
 
@@ -976,7 +1073,7 @@ function showOrderConfirmation(order) {
 // ORDER HISTORY
 // ==========================================
 
-function openHistory() {
+function openHistory(fromPop = false, replace = false) {
     document.getElementById("drawerTitle").textContent =
         "ORDER HISTORY";
 
@@ -1015,29 +1112,31 @@ function openHistory() {
                         ${new Date(order.timestamp).toLocaleString()}
                     </div>
 
-                    ${order.items.map(item => `
+                    ${order.items.map(item => {
+                        const itemOptions = item.options || {};
 
-                        <p style="font-size:12px;line-height:1.6;margin:8px 0">
+                        return `
+                            <p style="font-size:12px;line-height:1.6;margin:8px 0">
 
-                            ${item.qty} × ${item.name}
+                                ${item.qty} × ${item.name}
 
-                            <br>
+                                <br>
 
-                            Regular ·
-                            ${item.options.sweet} sweetness ·
-                            ${item.options.ice} ice
+                                Regular ·
+                                ${itemOptions.sweet || "Normal"} sweetness ·
+                                ${itemOptions.ice || "Regular"} ice
 
-                            ${item.options.powder
-                                ? "<br>Matcha powder: " + item.options.powder
-                                : ""}
+                                ${itemOptions.powder
+                                    ? "<br>Matcha powder: " + itemOptions.powder
+                                    : ""}
 
-                            ${item.options.addons?.length
-                                ? "<br>Add-ons: " + item.options.addons.join(", ")
-                                : ""}
+                                ${(itemOptions.addons || []).length
+                                    ? "<br>Add-ons: " + itemOptions.addons.join(", ")
+                                    : ""}
 
-                        </p>
-
-                    `).join("")}
+                            </p>
+                        `;
+                    }).join("")}
 
                     <div class="history-top">
 
@@ -1073,6 +1172,11 @@ function openHistory() {
 
     `;
 
+    navigateDrawer(
+        "history",
+        fromPop ? "none" : replace ? "replace" : "push"
+    );
+
     showDrawer();
 }
 
@@ -1097,7 +1201,9 @@ function reorder(index) {
             addon => Object.hasOwn(addonPrices, addon)
         );
 
-        const product = menu.find(p => p.id === item.id);
+        const product = menu.find(
+            p => String(p.id) === String(item.id)
+        );
 
         if (product) {
             item.image = product.image || "";
@@ -1137,7 +1243,7 @@ function clearHistory() {
         orderHistory = previous;
     }
 
-    openHistory();
+    openHistory(false, true);
 }
 
 
@@ -1153,9 +1259,15 @@ function showDrawer() {
 
 
 function closeDrawer() {
-    document.getElementById("overlay").classList.remove("show");
+    if (
+        history.state &&
+        history.state.caveMatcha
+    ) {
+        history.back();
+        return;
+    }
 
-    document.getElementById("drawer").classList.remove("show");
+    hideDrawer();
 }
 
 
