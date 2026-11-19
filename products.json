@@ -6,7 +6,7 @@
     "category": "Matcha",
     "price": 10,
     "desc": "Classic Japanese matcha with milk.",
-    "image": "https://www.justonecookbook.com/wp-content/uploads/2025/12/Matcha-Latte-4598-I-2-500x375.jpg",
+    "image": "matcha latte.jpg",
     "available": true
   },
   {
@@ -15,7 +15,7 @@
     "category": "Matcha",
     "price": 13,
     "desc": "Matcha with strawberry flavour.",
-    "image": "https://cdn.shopify.com/s/files/1/0240/2942/9840/files/delicious-matcha-tea-scene_4.jpg?v=1770013286",
+    "image": "strawberry matcha .jpg",
     "available": true
   },
   {
@@ -24,7 +24,7 @@
     "category": "Matcha",
     "price": 10,
     "desc": "Matcha with water.",
-    "image": "https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/mango_matcha_latte.jpg",
+    "image": "usucha .png",
     "available": true
   },
   {
@@ -33,7 +33,7 @@
     "category": "Hojicha",
     "price": 13,
     "desc": "Roasted Japanese tea with milk.",
-    "image": "https://uk.hojicha.co/cdn/shop/products/hojicha_co_hojicha_powder_original_1.jpg?v=1753832055&width=1445",
+    "image": "hojicha.jpg",
     "available": true
   }
 ]
