@@ -6,7 +6,9 @@
 
 
 // YOUR DISCORD WEBHOOK
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573054423121530923/2qSglFgGnZt9PAxwKr-I3WmMXDy6kMmqqhfDgpKLWBT3Pj8IeAyKJhbOnbesV0BwX49x";
+// Replace with your newly regenerated webhook.
+// Do not publish this URL in a public repository.
+const DISCORD_WEBHOOK_URL = "YOUR_NEW_DISCORD_WEBHOOK_URL";
 
 
 // ==========================================
@@ -48,6 +50,28 @@ const addonPrices = {
 
 
 // ==========================================
+// MATCHA POWDER PRICES
+// ==========================================
+
+const powderPrices = {
+    "Kiku": 0,
+    "Hisui": 2,
+    "Tsubaki": 4
+};
+
+
+// ==========================================
+// MATCHA PRODUCT CHECK
+// ==========================================
+
+function isMatchaProduct(product) {
+    return String(product.category || "")
+        .trim()
+        .toLowerCase() === "matcha";
+}
+
+
+// ==========================================
 // LOAD PRODUCTS FROM products.json
 // ==========================================
 
@@ -65,11 +89,16 @@ async function loadProducts() {
             throw new Error("Invalid products.json format");
         }
 
-        menu = data.filter(product =>
-            product.available !== false &&
-            product.category &&
-            typeof product.category === "string"
-        );
+        menu = data
+            .filter(product =>
+                product.available !== false &&
+                product.category &&
+                typeof product.category === "string"
+            )
+            .map(product => ({
+                ...product,
+                category: product.category.trim()
+            }));
 
         renderCategories();
         renderProducts(currentCategory);
@@ -158,7 +187,7 @@ function renderCategories() {
     const categories = [
         ...new Set(
             menu
-                .map(product => product.category.trim())
+                .map(product => product.category)
                 .filter(Boolean)
         )
     ];
@@ -298,20 +327,30 @@ function openProduct(id, index = -1) {
 
     qty = index >= 0 ? cart[index].qty : 1;
 
-    options = index >= 0
-        ? {
-            ...cart[index].options,
-            size: "Regular",
-            addons: cart[index].options.addons.filter(
+    const savedOptions = index >= 0
+        ? (cart[index].options || {})
+        : {};
+
+    options = {
+        size: "Regular",
+
+        sweet: savedOptions.sweet || "Normal",
+
+        ice: savedOptions.ice || "Regular",
+
+        addons: Array.isArray(savedOptions.addons)
+            ? savedOptions.addons.filter(
                 addon => Object.hasOwn(addonPrices, addon)
             )
-        }
-        : {
-            size: "Regular",
-            sweet: "Normal",
-            ice: "Regular",
-            addons: []
-        };
+            : []
+    };
+
+    if (isMatchaProduct(selected)) {
+        options.powder =
+            powderPrices[savedOptions.powder] !== undefined
+                ? savedOptions.powder
+                : "Kiku";
+    }
 
     renderDrawer();
 
@@ -334,7 +373,9 @@ function renderDrawer() {
         0
     );
 
-    const unit = Number(p.price) + addonTotal;
+    const powderTotal = powderPrices[options.powder] || 0;
+
+    const unit = Number(p.price) + addonTotal + powderTotal;
 
     document.getElementById("drawerContent").innerHTML = `
 
@@ -354,6 +395,17 @@ function renderDrawer() {
         </div>
 
         ${group("Drink size", "size", ["Regular"])}
+
+        ${isMatchaProduct(p) ? group(
+            "Matcha powder",
+            "powder",
+            ["Kiku", "Hisui", "Tsubaki"],
+            {
+                "Kiku": "Included",
+                "Hisui": "+RM2.00",
+                "Tsubaki": "+RM4.00"
+            }
+        ) : ""}
 
         ${group("Sweetness level", "sweet", [
             "0%", "25%", "50%", "75%", "Normal"
@@ -509,10 +561,14 @@ function changeQty(n) {
 // ==========================================
 
 function unitPrice(p, o) {
-    return Number(p.price) + o.addons.reduce(
+    const addonTotal = (o.addons || []).reduce(
         (sum, addon) => sum + (addonPrices[addon] || 0),
         0
     );
+
+    const powderTotal = powderPrices[o.powder] || 0;
+
+    return Number(p.price) + addonTotal + powderTotal;
 }
 
 
@@ -604,6 +660,12 @@ function openCart() {
                                     ${item.options.sweet} sweetness ·
                                     ${item.options.ice} ice
                                 </p>
+
+                                ${item.options.powder ? `
+                                    <p>
+                                        Matcha powder: ${item.options.powder}
+                                    </p>
+                                ` : ""}
 
                                 <p>
                                     ${item.options.addons.join(", ") || "No add-ons"}
@@ -698,11 +760,16 @@ async function sendDiscordOrder(order) {
             ? `\nAdd-ons: ${item.options.addons.join(", ")}`
             : "";
 
+        const powder = item.options.powder
+            ? `\nMatcha powder: ${item.options.powder}`
+            : "";
+
         return (
             `**${item.qty}x ${item.name}**\n` +
             `Regular | ` +
             `${item.options.sweet} sweetness | ` +
             `${item.options.ice} ice` +
+            powder +
             addons
         );
 
@@ -960,7 +1027,11 @@ function openHistory() {
                             ${item.options.sweet} sweetness ·
                             ${item.options.ice} ice
 
-                            ${item.options.addons.length
+                            ${item.options.powder
+                                ? "<br>Matcha powder: " + item.options.powder
+                                : ""}
+
+                            ${item.options.addons?.length
                                 ? "<br>Add-ons: " + item.options.addons.join(", ")
                                 : ""}
 
@@ -1017,11 +1088,12 @@ function reorder(index) {
 
     cart = JSON.parse(JSON.stringify(order.items));
 
-    // Remove unsupported add-ons and restore product images.
     cart.forEach(item => {
+        item.options = item.options || {};
+
         item.options.size = "Regular";
 
-        item.options.addons = item.options.addons.filter(
+        item.options.addons = (item.options.addons || []).filter(
             addon => Object.hasOwn(addonPrices, addon)
         );
 
@@ -1029,12 +1101,17 @@ function reorder(index) {
 
         if (product) {
             item.image = product.image || "";
-        }
 
-        item.price = unitPrice(
-            product || { price: item.price },
-            item.options
-        );
+            if (isMatchaProduct(product)) {
+                if (powderPrices[item.options.powder] === undefined) {
+                    item.options.powder = "Kiku";
+                }
+            } else {
+                delete item.options.powder;
+            }
+
+            item.price = unitPrice(product, item.options);
+        }
     });
 
     updateCart();
@@ -1087,3 +1164,4 @@ function closeDrawer() {
 // ==========================================
 
 loadProducts();
+
