@@ -8,7 +8,7 @@
 // YOUR DISCORD WEBHOOK
 // Replace with your newly regenerated webhook.
 // Do not publish this URL in a public repository.
-const DISCORD_WEBHOOK_URL = "YOUR_NEW_DISCORD_WEBHOOK_URL";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573054423121530923/2qSglFgGnZt9PAxwKr-I3WmMXDy6kMmqqhfDgpKLWBT3Pj8IeAyKJhbOnbesV0BwX49x";
 
 
 // ==========================================
