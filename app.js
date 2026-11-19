@@ -294,7 +294,7 @@ function renderProducts(category = currentCategory) {
                 <div class="product-bottom">
 
                     <span class="price">
-                        From ${money(product.price)}
+                        ${money(product.price)}
                     </span>
 
                     <button
