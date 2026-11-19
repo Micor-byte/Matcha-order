@@ -22,7 +22,7 @@
     "id": 3,
     "name": "Matcha usucha",
     "category": "Matcha",
-    "price": 15,
+    "price": 10,
     "desc": "Matcha with water.",
     "image": "https://snapcalorie-webflow-website.s3.us-east-2.amazonaws.com/media/food_pics_v2/medium/mango_matcha_latte.jpg",
     "available": true
