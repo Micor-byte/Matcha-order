@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cave Matcha | Order Online</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+
+        <div class="brand">
+            <img src="logo.png" alt="Cave Matcha">
+        </div>
+
+        <div class="header-right">
+
+            <button
+                class="history-button"
+                onclick="openHistory()"
+            >
+                HISTORY
+            </button>
+
+            <button
+                class="cart-button"
+                onclick="openCart()"
+                aria-label="Open shopping bag"
+            >
+
+                <svg
+                    class="bag-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M5 8h14l1 13H4L5 8Z"/>
+                    <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+                </svg>
+
+                <span id="cartCount">0</span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <p class="hero-label">
+                CAVE MATCHA
+            </p>
+
+            <h1>
+                A BETTER MATCHA EXPERIENCE
+            </h1>
+
+            <p>
+                Choose your drink.
+            </p>
+
+            <span>
+                Made fresh. Prepared just for you.
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- CATEGORY NAVIGATION -->
+    <nav class="tabs" id="categoryTabs">
+    </nav>
+
+
+    <!-- PRODUCT MENU -->
+    <main class="menu">
+
+        <h2 id="categoryTitle">
+            Our menu
+        </h2>
+
+        <div id="products">
+        </div>
+
+    </main>
+
+
+    <!-- DRAWER OVERLAY -->
+    <div
+        id="overlay"
+        onclick="closeDrawer()"
+    ></div>
+
+
+    <!-- SIDE DRAWER -->
+    <aside id="drawer">
+
+        <div class="drawer-header">
+
+            <h2 id="drawerTitle">
+                YOUR ORDER
+            </h2>
+
+            <button
+                class="close-button"
+                onclick="closeDrawer()"
+                aria-label="Close drawer"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div
+            id="drawerContent"
+            class="drawer-content"
+        >
+        </div>
+
+        <div
+            id="drawerFooter"
+            class="drawer-footer"
+        >
+        </div>
+
+    </aside>
+
+
+</body>
+</html>
