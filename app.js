@@ -1227,21 +1227,98 @@ function reorder(index) {
 
 
 // ==========================================
-// CLEAR HISTORY
+// CLEAR HISTORY CONFIRMATION MODAL
 // ==========================================
 
 function clearHistory() {
-    if (!confirm("Delete all saved order history?")) {
-        return;
-    }
+    if (!orderHistory.length) return;
 
+    if (document.getElementById("clearHistoryModal")) return;
+
+    const modal = document.createElement("div");
+
+    modal.className = "confirm-overlay";
+    modal.id = "clearHistoryModal";
+
+    modal.innerHTML = `
+        <div class="confirm-box">
+
+            <h3>Clear Order History</h3>
+
+            <p>
+                Are you sure you want to delete all saved order history?
+            </p>
+
+            <span>
+                This action cannot be undone.
+            </span>
+
+            <div class="confirm-actions">
+
+                <button
+                    class="confirm-cancel"
+                    onclick="closeClearHistory()"
+                >
+                    CANCEL
+                </button>
+
+                <button
+                    class="confirm-delete"
+                    onclick="confirmClearHistory()"
+                >
+                    DELETE HISTORY
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    modal.addEventListener("click", event => {
+        if (event.target === modal) {
+            closeClearHistory();
+        }
+    });
+
+    document.body.appendChild(modal);
+}
+
+
+// ==========================================
+// CLOSE CLEAR HISTORY MODAL
+// ==========================================
+
+function closeClearHistory() {
+    const modal = document.getElementById("clearHistoryModal");
+
+    if (modal) {
+        modal.remove();
+    }
+}
+
+
+// ==========================================
+// CONFIRM CLEAR HISTORY
+// ==========================================
+
+function confirmClearHistory() {
     const previous = orderHistory;
 
     orderHistory = [];
 
     if (!saveHistory()) {
         orderHistory = previous;
+
+        closeClearHistory();
+
+        alert(
+            "Unable to clear order history.\nPlease try again."
+        );
+
+        return;
     }
+
+    closeClearHistory();
 
     openHistory(false, true);
 }
@@ -1276,4 +1353,3 @@ function closeDrawer() {
 // ==========================================
 
 loadProducts();
-
