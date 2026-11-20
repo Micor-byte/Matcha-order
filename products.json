@@ -1,11 +1,10 @@
-
 [
   {
     "id": 1,
     "name": "Matcha Latte",
     "category": "Matcha",
     "price": 10,
-    "desc": "Classic Japanese matcha with milk.",
+    "desc": "Smooth, rich Japanese matcha blended with creamy milk for a perfectly balanced taste.",
     "image": "matcha latte.jpg",
     "available": true
   },
@@ -14,16 +13,16 @@
     "name": "Strawberry Matcha",
     "category": "Matcha",
     "price": 13,
-    "desc": "Matcha with strawberry flavour.",
+    "desc": "A refreshing blend of earthy matcha and sweet strawberry, bringing fruity freshness to every sip.",
     "image": "strawberry matcha .jpg",
     "available": true
   },
   {
     "id": 3,
-    "name": "Matcha usucha",
+    "name": "Matcha Usucha",
     "category": "Matcha",
     "price": 10,
-    "desc": "Matcha with water.",
+    "desc": "Pure Japanese matcha whisked with water, offering a clean, vibrant tea flavour with a naturally delicate finish.",
     "image": "usucha .png",
     "available": true
   },
@@ -32,7 +31,7 @@
     "name": "Hojicha Latte",
     "category": "Hojicha",
     "price": 10,
-    "desc": "Roasted Japanese tea with milk.",
+    "desc": "Fragrant roasted Japanese tea blended with creamy milk, delivering a smooth, comforting taste with warm roasted notes.",
     "image": "hojicha.jpg",
     "available": true
   }
