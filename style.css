@@ -159,44 +159,28 @@ header {
 }
 
 /* ==========================================
-   HERO
+   HERO BANNER
 ========================================== */
 
 .hero {
-    padding: 45px 6% 30px;
+    padding: 0;
 }
 
 .hero-content {
+    width: 100%;
     max-width: 1050px;
     margin: auto;
 }
 
-.hero-label,
-.eyebrow {
-    color: var(--green);
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: 3px;
+.hero-banner {
+    width: 100%;
+    overflow: hidden;
 }
 
-.hero h1 {
-    margin: 12px 0 8px;
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-}
-
-.hero p {
-    margin: 0;
-    color: var(--dark);
-    font-size: 14px;
-}
-
-.hero span {
+.hero-banner img {
     display: block;
-    margin-top: 8px;
-    color: var(--muted);
-    font-size: 12px;
+    width: 100%;
+    height: auto;
 }
 
 /* ==========================================
@@ -787,10 +771,6 @@ main {
     .product img {
         height: 190px;
     }
-
-    .hero h1 {
-        font-size: 44px;
-    }
 }
 
 /* ==========================================
@@ -821,7 +801,7 @@ main {
     }
 
     .hero {
-        padding: 35px 5% 25px;
+        padding: 0;
     }
 
     .tabs {
