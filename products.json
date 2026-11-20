@@ -31,7 +31,7 @@
     "id": 4,
     "name": "Hojicha Latte",
     "category": "Hojicha",
-    "price": 13,
+    "price": 10,
     "desc": "Roasted Japanese tea with milk.",
     "image": "hojicha.jpg",
     "available": true
