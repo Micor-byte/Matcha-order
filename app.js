@@ -8,9 +8,7 @@
  // ==========================================
  // DISCORD WEBHOOK
  // ==========================================
-
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573269280336912484/2-Dm9iJVXaCtuP2WOeka7jYLb3NIBtE9-HZw5Whg3s9sELym_3xDKtaSdeTF5zObzW7N";
-
+const webhook = env.DISCORD_WEBHOOK_URL;
 
  // ==========================================
  // PRODUCT DATA
