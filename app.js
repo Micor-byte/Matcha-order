@@ -1,14 +1,15 @@
 
 // ==========================================
 // CAVE MATCHA ORDERING SYSTEM
-// Discord Webhook Version
+// Cloudflare Worker Version
 // ==========================================
 
 
-// YOUR DISCORD WEBHOOK
-// Keep the real webhook private.
-// Use a secure backend such as Cloudflare Workers.
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573054423121530923/2qSglFgGnZt9PAxwKr-I3WmMXDy6kMmqqhfDgpKLWBT3Pj8IeAyKJhbOnbesV0BwX49x";
+// ==========================================
+// CLOUDFLARE WORKER API
+// ==========================================
+
+const API_URL = "https://cave-matcha.micormelvyn.workers.dev/";
 
 
 // ==========================================
@@ -842,95 +843,31 @@ function removeCart(index) {
 
 
 // ==========================================
-// DISCORD WEBHOOK
+// CLOUDFLARE WORKER
 // ==========================================
 
 async function sendDiscordOrder(order) {
 
-    const itemsText = order.items.map(item => {
+    const response = await fetch(API_URL, {
+        method: "POST",
 
-        const itemOptions = item.options || {};
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-        const addons = (itemOptions.addons || []).length
-            ? `\nAdd-ons: ${itemOptions.addons.join(", ")}`
-            : "";
-
-        const powder = itemOptions.powder
-            ? `\nMatcha powder: ${itemOptions.powder}`
-            : "";
-
-        return (
-            `**${item.qty}x ${item.name}**\n` +
-            `Regular | ` +
-            `${itemOptions.sweet || "Normal"} sweetness | ` +
-            `${itemOptions.ice || "Regular"} ice` +
-            powder +
-            addons
-        );
-
-    }).join("\n\n");
-
-
-    const payload = {
-        username: "Cave Matcha Orders",
-
-        embeds: [
-            {
-                title: "NEW ORDER RECEIVED",
-
-                color: 0x526b48,
-
-                fields: [
-                    {
-                        name: "Collection Code",
-                        value: `# ${order.code}`,
-                        inline: false
-                    },
-                    {
-                        name: "Order Items",
-                        value: itemsText.slice(0, 1024) || "No items",
-                        inline: false
-                    },
-                    {
-                        name: "Total",
-                        value: money(order.total),
-                        inline: true
-                    },
-                    {
-                        name: "Status",
-                        value: "Received",
-                        inline: true
-                    }
-                ],
-
-                footer: {
-                    text: "Cave Matcha Ordering System"
-                },
-
-                timestamp: order.timestamp
-            }
-        ]
-    };
-
-
-    const response = await fetch(
-        DISCORD_WEBHOOK_URL,
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify(payload)
-        }
-    );
-
+        body: JSON.stringify(order)
+    });
 
     if (!response.ok) {
         throw new Error(
-            `Discord webhook error: ${response.status}`
+            `Server error: ${response.status}`
         );
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+        throw new Error("Order submission failed.");
     }
 
     return true;
@@ -944,11 +881,10 @@ async function sendDiscordOrder(order) {
 async function checkout() {
     if (!cart.length) return;
 
-    if (!DISCORD_WEBHOOK_URL) {
-        alert("Please configure your Discord webhook URL first.");
+    if (!API_URL) {
+        alert("Ordering server is not configured.");
         return;
     }
-
 
     const button = document.querySelector(
         "#drawerFooter button.primary"
@@ -959,14 +895,12 @@ async function checkout() {
         button.textContent = "SENDING ORDER...";
     }
 
-
     const orderItems = JSON.parse(JSON.stringify(cart));
 
     const total = orderItems.reduce(
         (sum, item) => sum + item.price * item.qty,
         0
     );
-
 
     const order = {
         id: "CM" + Date.now(),
@@ -976,7 +910,6 @@ async function checkout() {
         total,
         status: "Received"
     };
-
 
     try {
         await sendDiscordOrder(order);
@@ -1050,7 +983,6 @@ function showOrderConfirmation(order, fromPop = false) {
 
     `;
 
-
     document.getElementById("drawerFooter").innerHTML = `
 
         <button class="primary" onclick="closeDrawer()">
@@ -1076,7 +1008,6 @@ function showOrderConfirmation(order, fromPop = false) {
 function openHistory(fromPop = false, replace = false) {
     document.getElementById("drawerTitle").textContent =
         "ORDER HISTORY";
-
 
     if (!orderHistory.length) {
 
@@ -1158,7 +1089,6 @@ function openHistory(fromPop = false, replace = false) {
 
             `).join("");
     }
-
 
     document.getElementById("drawerFooter").innerHTML = `
 
