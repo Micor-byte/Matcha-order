@@ -1,27 +1,27 @@
 
-// ==========================================
-// CAVE MATCHA ORDERING SYSTEM
-// Cloudflare Worker Version
-// ==========================================
+ // ==========================================
+ // CAVE MATCHA ORDERING SYSTEM
+ // Direct Discord Webhook Version
+ // ==========================================
 
 
-// ==========================================
-// CLOUDFLARE WORKER API
-// ==========================================
+ // ==========================================
+ // DISCORD WEBHOOK
+ // ==========================================
 
-const API_URL = "https://cave-matcha.micormelvyn.workers.dev/";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1573269280336912484/2-Dm9iJVXaCtuP2WOeka7jYLb3NIBtE9-HZw5Whg3s9sELym_3xDKtaSdeTF5zObzW7N";
 
 
-// ==========================================
-// PRODUCT DATA
-// ==========================================
+ // ==========================================
+ // PRODUCT DATA
+ // ==========================================
 
 let menu = [];
 
 
-// ==========================================
-// ORDER STATE
-// ==========================================
+ // ==========================================
+ // ORDER STATE
+ // ==========================================
 
 let cart = [];
 let selected = null;
@@ -32,17 +32,17 @@ let options = {};
 let currentCategory = "all";
 
 
-// ==========================================
-// ORDER HISTORY
-// ==========================================
+ // ==========================================
+ // ORDER HISTORY
+ // ==========================================
 
 const HISTORY_KEY = "caveMatchaOrders";
 let orderHistory = loadOrderHistory();
 
 
-// ==========================================
-// ADD-ON PRICES
-// ==========================================
+ // ==========================================
+ // ADD-ON PRICES
+ // ==========================================
 
 const addonPrices = {
     "Extra matcha": 3,
@@ -50,9 +50,9 @@ const addonPrices = {
 };
 
 
-// ==========================================
-// MATCHA POWDER PRICES
-// ==========================================
+ // ==========================================
+ // MATCHA POWDER PRICES
+ // ==========================================
 
 const powderPrices = {
     "Kiku": 0,
@@ -61,9 +61,9 @@ const powderPrices = {
 };
 
 
-// ==========================================
-// MATCHA PRODUCT CHECK
-// ==========================================
+ // ==========================================
+ // MATCHA PRODUCT CHECK
+ // ==========================================
 
 function isMatchaProduct(product) {
     return String(product.category || "")
@@ -72,9 +72,9 @@ function isMatchaProduct(product) {
 }
 
 
-// ==========================================
-// LOAD PRODUCTS FROM products.json
-// ==========================================
+ // ==========================================
+ // LOAD PRODUCTS FROM products.json
+ // ==========================================
 
 async function loadProducts() {
     try {
@@ -119,9 +119,9 @@ async function loadProducts() {
 }
 
 
-// ==========================================
-// ORDER HISTORY
-// ==========================================
+ // ==========================================
+ // ORDER HISTORY
+ // ==========================================
 
 function loadOrderHistory() {
     try {
@@ -154,9 +154,9 @@ function saveHistory() {
 }
 
 
-// ==========================================
-// GENERATE FOUR-DIGIT COLLECTION CODE
-// ==========================================
+ // ==========================================
+ // GENERATE FOUR-DIGIT COLLECTION CODE
+ // ==========================================
 
 function generateOrderCode() {
     const random = new Uint32Array(1);
@@ -167,18 +167,18 @@ function generateOrderCode() {
 }
 
 
-// ==========================================
-// HELPERS
-// ==========================================
+ // ==========================================
+ // HELPERS
+ // ==========================================
 
 function money(n) {
     return "RM" + Number(n).toFixed(2);
 }
 
 
-// ==========================================
-// BROWSER BACK BUTTON NAVIGATION
-// ==========================================
+ // ==========================================
+ // BROWSER BACK BUTTON NAVIGATION
+ // ==========================================
 
 let drawerPage = "menu";
 
@@ -252,9 +252,9 @@ window.addEventListener("popstate", event => {
 });
 
 
-// ==========================================
-// AUTOMATIC CATEGORY GENERATION
-// ==========================================
+ // ==========================================
+ // AUTOMATIC CATEGORY GENERATION
+ // ==========================================
 
 function renderCategories() {
     const container = document.getElementById("categoryTabs");
@@ -302,9 +302,9 @@ function renderCategories() {
 }
 
 
-// ==========================================
-// CATEGORY FILTER
-// ==========================================
+ // ==========================================
+ // CATEGORY FILTER
+ // ==========================================
 
 function filter(category, element) {
     currentCategory = category;
@@ -326,9 +326,9 @@ function filter(category, element) {
 }
 
 
-// ==========================================
-// DISPLAY PRODUCTS
-// ==========================================
+ // ==========================================
+ // DISPLAY PRODUCTS
+ // ==========================================
 
 function renderProducts(category = currentCategory) {
     const productsElement = document.getElementById("products");
@@ -391,9 +391,9 @@ function renderProducts(category = currentCategory) {
 }
 
 
-// ==========================================
-// PRODUCT CUSTOMISATION
-// ==========================================
+ // ==========================================
+ // PRODUCT CUSTOMISATION
+ // ==========================================
 
 function openProduct(id, index = -1, fromPop = false) {
     selected = menu.find(
@@ -449,9 +449,9 @@ function openProduct(id, index = -1, fromPop = false) {
 }
 
 
-// ==========================================
-// RENDER CUSTOMISATION
-// ==========================================
+ // ==========================================
+ // RENDER CUSTOMISATION
+ // ==========================================
 
 function renderDrawer() {
     const p = selected;
@@ -568,9 +568,9 @@ function renderDrawer() {
 }
 
 
-// ==========================================
-// OPTION GROUP
-// ==========================================
+ // ==========================================
+ // OPTION GROUP
+ // ==========================================
 
 function group(title, key, values, prices = {}) {
     return `
@@ -609,9 +609,9 @@ function group(title, key, values, prices = {}) {
 }
 
 
-// ==========================================
-// SELECT OPTIONS
-// ==========================================
+ // ==========================================
+ // SELECT OPTIONS
+ // ==========================================
 
 function selectOption(key, value) {
     options[key] = value;
@@ -644,9 +644,9 @@ function changeQty(n) {
 }
 
 
-// ==========================================
-// PRICE CALCULATION
-// ==========================================
+ // ==========================================
+ // PRICE CALCULATION
+ // ==========================================
 
 function unitPrice(p, o) {
     const addonTotal = (o.addons || []).reduce(
@@ -660,9 +660,9 @@ function unitPrice(p, o) {
 }
 
 
-// ==========================================
-// ADD TO CART
-// ==========================================
+ // ==========================================
+ // ADD TO CART
+ // ==========================================
 
 function addToCart() {
     const item = {
@@ -694,9 +694,9 @@ function addToCart() {
 }
 
 
-// ==========================================
-// UPDATE CART
-// ==========================================
+ // ==========================================
+ // UPDATE CART
+ // ==========================================
 
 function updateCart() {
     document.getElementById("cartCount").textContent =
@@ -704,9 +704,9 @@ function updateCart() {
 }
 
 
-// ==========================================
-// OPEN CART
-// ==========================================
+ // ==========================================
+ // OPEN CART
+ // ==========================================
 
 function openCart(fromPop = false, replace = false) {
     editingIndex = -1;
@@ -816,9 +816,9 @@ function openCart(fromPop = false, replace = false) {
 }
 
 
-// ==========================================
-// EDIT CART
-// ==========================================
+ // ==========================================
+ // EDIT CART
+ // ==========================================
 
 function editCart(index) {
     const item = cart[index];
@@ -829,9 +829,9 @@ function editCart(index) {
 }
 
 
-// ==========================================
-// REMOVE CART ITEM
-// ==========================================
+ // ==========================================
+ // REMOVE CART ITEM
+ // ==========================================
 
 function removeCart(index) {
     cart.splice(index, 1);
@@ -842,47 +842,114 @@ function removeCart(index) {
 }
 
 
-// ==========================================
-// CLOUDFLARE WORKER
-// ==========================================
+ // ==========================================
+ // SEND ORDER DIRECTLY TO DISCORD
+ // ==========================================
 
 async function sendDiscordOrder(order) {
 
-    const response = await fetch(API_URL, {
+    const itemsText = order.items.map(item => {
+
+        const itemOptions = item.options || {};
+
+        const addons = (itemOptions.addons || []).length
+            ? `\nAdd-ons: ${itemOptions.addons.join(", ")}`
+            : "";
+
+        const powder = itemOptions.powder
+            ? `\nMatcha powder: ${itemOptions.powder}`
+            : "";
+
+        return [
+            `**${item.qty} × ${item.name}**`,
+            `Regular | ${itemOptions.sweet || "Normal"} sweetness`,
+            `${itemOptions.ice || "Regular"} ice`,
+            powder,
+            addons
+        ].filter(Boolean).join("\n");
+
+    }).join("\n\n");
+
+    const payload = {
+
+        username: "Cave Matcha Orders",
+
+        embeds: [
+            {
+                title: "NEW ORDER RECEIVED",
+
+                color: 0x526b48,
+
+                fields: [
+                    {
+                        name: "COLLECTION CODE",
+                        value: `# ${order.code}`,
+                        inline: false
+                    },
+                    {
+                        name: "ORDER ITEMS",
+                        value: itemsText.slice(0, 1024) || "No items",
+                        inline: false
+                    },
+                    {
+                        name: "TOTAL",
+                        value: `RM${Number(order.total).toFixed(2)}`,
+                        inline: true
+                    },
+                    {
+                        name: "STATUS",
+                        value: order.status || "Received",
+                        inline: true
+                    }
+                ],
+
+                footer: {
+                    text: "Cave Matcha Ordering System"
+                },
+
+                timestamp: order.timestamp || new Date().toISOString()
+            }
+        ],
+
+        allowed_mentions: {
+            parse: []
+        }
+    };
+
+    const response = await fetch(DISCORD_WEBHOOK_URL, {
+
         method: "POST",
 
         headers: {
             "Content-Type": "application/json"
         },
 
-        body: JSON.stringify(order)
+        body: JSON.stringify(payload)
+
     });
 
     if (!response.ok) {
         throw new Error(
-            `Server error: ${response.status}`
+            `Discord error: ${response.status}`
         );
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-        throw new Error("Order submission failed.");
     }
 
     return true;
 }
 
 
-// ==========================================
-// CHECKOUT
-// ==========================================
+ // ==========================================
+ // CHECKOUT
+ // ==========================================
 
 async function checkout() {
     if (!cart.length) return;
 
-    if (!API_URL) {
-        alert("Ordering server is not configured.");
+    if (
+        !DISCORD_WEBHOOK_URL ||
+        DISCORD_WEBHOOK_URL.includes("PASTE_YOUR_NEW")
+    ) {
+        alert("Discord webhook is not configured.");
         return;
     }
 
@@ -936,9 +1003,9 @@ async function checkout() {
 }
 
 
-// ==========================================
-// ORDER CONFIRMATION
-// ==========================================
+ // ==========================================
+ // ORDER CONFIRMATION
+ // ==========================================
 
 function showOrderConfirmation(order, fromPop = false) {
     document.getElementById("drawerTitle").textContent =
@@ -1001,9 +1068,9 @@ function showOrderConfirmation(order, fromPop = false) {
 }
 
 
-// ==========================================
-// ORDER HISTORY
-// ==========================================
+ // ==========================================
+ // ORDER HISTORY
+ // ==========================================
 
 function openHistory(fromPop = false, replace = false) {
     document.getElementById("drawerTitle").textContent =
@@ -1111,9 +1178,9 @@ function openHistory(fromPop = false, replace = false) {
 }
 
 
-// ==========================================
-// REORDER
-// ==========================================
+ // ==========================================
+ // REORDER
+ // ==========================================
 
 function reorder(index) {
     const order = orderHistory[index];
@@ -1156,9 +1223,9 @@ function reorder(index) {
 }
 
 
-// ==========================================
-// CLEAR HISTORY CONFIRMATION MODAL
-// ==========================================
+ // ==========================================
+ // CLEAR HISTORY CONFIRMATION MODAL
+ // ==========================================
 
 function clearHistory() {
     if (!orderHistory.length) return;
@@ -1214,9 +1281,9 @@ function clearHistory() {
 }
 
 
-// ==========================================
-// CLOSE CLEAR HISTORY MODAL
-// ==========================================
+ // ==========================================
+ // CLOSE CLEAR HISTORY MODAL
+ // ==========================================
 
 function closeClearHistory() {
     const modal = document.getElementById("clearHistoryModal");
@@ -1227,9 +1294,9 @@ function closeClearHistory() {
 }
 
 
-// ==========================================
-// CONFIRM CLEAR HISTORY
-// ==========================================
+ // ==========================================
+ // CONFIRM CLEAR HISTORY
+ // ==========================================
 
 function confirmClearHistory() {
     const previous = orderHistory;
@@ -1254,9 +1321,9 @@ function confirmClearHistory() {
 }
 
 
-// ==========================================
-// DRAWER
-// ==========================================
+ // ==========================================
+ // DRAWER
+ // ==========================================
 
 function showDrawer() {
     document.getElementById("overlay").classList.add("show");
@@ -1278,8 +1345,8 @@ function closeDrawer() {
 }
 
 
-// ==========================================
-// INITIALISE
-// ==========================================
+ // ==========================================
+ // INITIALISE
+ // ==========================================
 
 loadProducts();
