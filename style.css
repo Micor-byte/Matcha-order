@@ -758,6 +758,95 @@ main {
 }
 
 /* ==========================================
+   CLEAR HISTORY CONFIRMATION
+========================================== */
+
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    animation: confirmFadeIn 0.2s ease;
+}
+
+.confirm-box {
+    width: 100%;
+    max-width: 360px;
+    padding: 26px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.confirm-box h3 {
+    margin: 0 0 12px;
+    color: var(--dark);
+    font-size: 17px;
+}
+
+.confirm-box p {
+    margin: 0 0 8px;
+    color: var(--dark);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.confirm-box span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.confirm-actions button {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.confirm-cancel {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--dark);
+}
+
+.confirm-cancel:hover {
+    background: var(--soft-green);
+}
+
+.confirm-delete {
+    border: 1px solid #a44;
+    background: #a44;
+    color: white;
+}
+
+.confirm-delete:hover {
+    background: #873636;
+}
+
+@keyframes confirmFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* ==========================================
    RESPONSIVE: TABLETS AND DESKTOP
 ========================================== */
 
