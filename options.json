@@ -1,0 +1,75 @@
+
+{
+  "groups": [
+    {
+      "key": "size",
+      "title": "Drink size",
+      "type": "single",
+      "required": true,
+      "values": [
+        {
+          "name": "Regular",
+          "price": 0
+        }
+      ]
+    },
+    {
+      "key": "powder",
+      "title": "Matcha powder",
+      "type": "single",
+      "required": true,
+      "categories": ["matcha"],
+      "values": [
+        {
+          "name": "Kiku",
+          "price": 0,
+          "description": "Slightly bitter"
+        },
+        {
+          "name": "Hisui",
+          "price": 2,
+          "description": "Creamy"
+        },
+        {
+          "name": "Tsubaki",
+          "price": 4,
+          "description": "Nutty"
+        }
+      ]
+    },
+    {
+      "key": "sweet",
+      "title": "Sweetness level",
+      "type": "single",
+      "required": true,
+      "values": [
+        { "name": "0%", "price": 0 },
+        { "name": "25%", "price": 0 },
+        { "name": "50%", "price": 0 },
+        { "name": "75%", "price": 0 },
+        { "name": "Normal", "price": 0 }
+      ]
+    },
+    {
+      "key": "ice",
+      "title": "Ice level",
+      "type": "single",
+      "required": true,
+      "values": [
+        { "name": "No ice", "price": 0 },
+        { "name": "Less ice", "price": 0 },
+        { "name": "Regular", "price": 0 }
+      ]
+    },
+    {
+      "key": "addons",
+      "title": "Add-ons",
+      "type": "multiple",
+      "required": false,
+      "values": [
+        { "name": "Extra matcha", "price": 3 },
+        { "name": "Extra milk", "price": 2 }
+      ]
+    }
+  ]
+}
