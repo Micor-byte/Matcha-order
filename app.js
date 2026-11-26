@@ -1,7 +1,9 @@
+
 // ==========================================
 // CAVE MATCHA ORDERING SYSTEM
 // Cloudflare Pages + Discord Version
 // ==========================================
+
 
 // ==========================================
 // CLOUDFLARE PAGES API
@@ -9,61 +11,14 @@
 
 const API_URL = "/api/order";
 
-// ==========================================
-// ADD TO BAG FEEDBACK STYLES
-// ==========================================
-
-const feedbackStyles = document.createElement("style");
-
-feedbackStyles.textContent = `
-    .bag-toast {
-        position: fixed;
-        bottom: 25px;
-        left: 50%;
-        transform: translate(-50%, 20px);
-        background: #26352a;
-        color: white;
-        padding: 13px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-        z-index: 99999;
-        white-space: nowrap;
-    }
-
-    .bag-toast.show {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-
-    .bag-toast-check {
-        color: #a8d5a0;
-        font-size: 17px;
-    }
-
-    @keyframes cartPop {
-        0% { transform: scale(1); }
-        40% { transform: scale(1.35); }
-        100% { transform: scale(1); }
-    }
-
-    .cart-pop {
-        animation: cartPop 0.35s ease;
-    }
-`;
-
-document.head.appendChild(feedbackStyles);
 
 // ==========================================
-// PRODUCT DATA
+// PRODUCT AND OPTION DATA
 // ==========================================
 
 let menu = [];
+let optionGroups = [];
+
 
 // ==========================================
 // ORDER STATE
@@ -77,31 +32,15 @@ let options = {};
 
 let currentCategory = "all";
 
+
 // ==========================================
 // ORDER HISTORY
 // ==========================================
 
 const HISTORY_KEY = "caveMatchaOrders";
+
 let orderHistory = loadOrderHistory();
 
-// ==========================================
-// ADD-ON PRICES
-// ==========================================
-
-const addonPrices = {
-    "Extra matcha": 3,
-    "Extra milk": 2
-};
-
-// ==========================================
-// MATCHA POWDER PRICES
-// ==========================================
-
-const powderPrices = {
-    "Kiku": 0,
-    "Hisui": 2,
-    "Tsubaki": 4
-};
 
 // ==========================================
 // MATCHA PRODUCT CHECK
@@ -113,25 +52,38 @@ function isMatchaProduct(product) {
         .toLowerCase() === "matcha";
 }
 
+
 // ==========================================
-// LOAD PRODUCTS FROM products.json
+// LOAD PRODUCTS AND OPTIONS
 // ==========================================
 
 async function loadProducts() {
     try {
-        const response = await fetch("./products.json");
+        const [productResponse, optionResponse] = await Promise.all([
+            fetch("./products.json"),
+            fetch("./options.json")
+        ]);
 
-        if (!response.ok) {
+        if (!productResponse.ok) {
             throw new Error("Unable to load products.json");
         }
 
-        const data = await response.json();
+        if (!optionResponse.ok) {
+            throw new Error("Unable to load options.json");
+        }
 
-        if (!Array.isArray(data)) {
+        const productData = await productResponse.json();
+        const optionData = await optionResponse.json();
+
+        if (!Array.isArray(productData)) {
             throw new Error("Invalid products.json format");
         }
 
-        menu = data
+        if (!optionData || !Array.isArray(optionData.groups)) {
+            throw new Error("Invalid options.json format");
+        }
+
+        menu = productData
             .filter(product =>
                 product.available !== false &&
                 product.category &&
@@ -142,22 +94,108 @@ async function loadProducts() {
                 category: product.category.trim()
             }));
 
+        optionGroups = optionData.groups.filter(group =>
+            group.key &&
+            group.title &&
+            Array.isArray(group.values) &&
+            group.values.length > 0
+        );
+
         renderCategories();
         renderProducts(currentCategory);
         updateCart();
 
     } catch (error) {
-        console.error("Product loading failed:", error);
+        console.error("Loading failed:", error);
 
         document.getElementById("products").innerHTML = `
             <div class="empty">
                 Unable to load the menu.
                 <br><br>
-                Please check products.json.
+                Please check products.json and options.json.
             </div>
         `;
     }
 }
+
+
+// ==========================================
+// GET OPTIONS FOR A PRODUCT
+// ==========================================
+
+function getApplicableGroups(product) {
+    return optionGroups.filter(group => {
+        if (!group.categories || !group.categories.length) {
+            return true;
+        }
+
+        const category = String(product.category || "")
+            .trim()
+            .toLowerCase();
+
+        return group.categories.some(item =>
+            String(item).trim().toLowerCase() === category
+        );
+    });
+}
+
+
+// ==========================================
+// PREPARE PRODUCT OPTIONS
+// ==========================================
+
+function prepareOptions(product, savedOptions = {}) {
+    const result = {};
+
+    getApplicableGroups(product).forEach(group => {
+        const validNames = group.values.map(value => value.name);
+
+        if (group.type === "multiple") {
+            const saved = Array.isArray(savedOptions[group.key])
+                ? savedOptions[group.key]
+                : [];
+
+            result[group.key] = saved.filter(name =>
+                validNames.includes(name)
+            );
+
+        } else {
+            const saved = savedOptions[group.key];
+
+            result[group.key] = validNames.includes(saved)
+                ? saved
+                : group.values[0].name;
+        }
+    });
+
+    return result;
+}
+
+
+// ==========================================
+// OPTION PRICE CALCULATION
+// ==========================================
+
+function getOptionPrice(group, selectedValue) {
+    if (group.type === "multiple") {
+        if (!Array.isArray(selectedValue)) return 0;
+
+        return selectedValue.reduce((total, name) => {
+            const value = group.values.find(item =>
+                item.name === name
+            );
+
+            return total + Number(value?.price || 0);
+        }, 0);
+    }
+
+    const value = group.values.find(item =>
+        item.name === selectedValue
+    );
+
+    return Number(value?.price || 0);
+}
+
 
 // ==========================================
 // ORDER HISTORY
@@ -177,6 +215,7 @@ function loadOrderHistory() {
     }
 }
 
+
 function saveHistory() {
     try {
         localStorage.setItem(
@@ -192,6 +231,7 @@ function saveHistory() {
     }
 }
 
+
 // ==========================================
 // GENERATE FOUR-DIGIT COLLECTION CODE
 // ==========================================
@@ -204,6 +244,7 @@ function generateOrderCode() {
     return String(random[0] % 10000).padStart(4, "0");
 }
 
+
 // ==========================================
 // HELPERS
 // ==========================================
@@ -212,11 +253,13 @@ function money(n) {
     return "RM" + Number(n).toFixed(2);
 }
 
+
 // ==========================================
 // BROWSER BACK BUTTON NAVIGATION
 // ==========================================
 
 let drawerPage = "menu";
+
 
 function navigateDrawer(page, mode = "push", data = {}) {
     drawerPage = page;
@@ -235,15 +278,16 @@ function navigateDrawer(page, mode = "push", data = {}) {
     }
 }
 
+
 function hideDrawer() {
     document.getElementById("overlay").classList.remove("show");
-
     document.getElementById("drawer").classList.remove("show");
 
     drawerPage = "menu";
 
     updateFloatingOrderButton();
 }
+
 
 function renderPreviousPage(state) {
     if (!state || !state.caveMatcha) {
@@ -252,7 +296,6 @@ function renderPreviousPage(state) {
     }
 
     switch (state.page) {
-
         case "product":
             openProduct(
                 state.productId,
@@ -282,9 +325,11 @@ function renderPreviousPage(state) {
     }
 }
 
+
 window.addEventListener("popstate", event => {
     renderPreviousPage(event.state);
 });
+
 
 // ==========================================
 // AUTOMATIC CATEGORY GENERATION
@@ -335,6 +380,7 @@ function renderCategories() {
     });
 }
 
+
 // ==========================================
 // CATEGORY FILTER
 // ==========================================
@@ -357,6 +403,7 @@ function filter(category, element) {
 
     renderProducts(category);
 }
+
 
 // ==========================================
 // DISPLAY PRODUCTS
@@ -383,7 +430,6 @@ function renderProducts(category = currentCategory) {
             class="product"
             onclick="openProduct(${Number(product.id)})"
         >
-
             <img
                 src="${product.image || ""}"
                 alt="${product.name}"
@@ -417,10 +463,10 @@ function renderProducts(category = currentCategory) {
                 </div>
 
             </div>
-
         </article>
     `).join("");
 }
+
 
 // ==========================================
 // PRODUCT CUSTOMISATION
@@ -441,26 +487,7 @@ function openProduct(id, index = -1, fromPop = false) {
         ? (cart[index].options || {})
         : {};
 
-    options = {
-        size: "Regular",
-
-        sweet: savedOptions.sweet || "Normal",
-
-        ice: savedOptions.ice || "Regular",
-
-        addons: Array.isArray(savedOptions.addons)
-            ? savedOptions.addons.filter(
-                addon => Object.hasOwn(addonPrices, addon)
-            )
-            : []
-    };
-
-    if (isMatchaProduct(selected)) {
-        options.powder =
-            powderPrices[savedOptions.powder] !== undefined
-                ? savedOptions.powder
-                : "Kiku";
-    }
+    options = prepareOptions(selected, savedOptions);
 
     renderDrawer();
 
@@ -479,93 +506,41 @@ function openProduct(id, index = -1, fromPop = false) {
     showDrawer();
 }
 
+
 // ==========================================
 // RENDER CUSTOMISATION
 // ==========================================
 
 function renderDrawer() {
-    const p = selected;
+    const product = selected;
 
-    const addonTotal = options.addons.reduce(
-        (sum, addon) => sum + (addonPrices[addon] || 0),
-        0
-    );
+    const unit = unitPrice(product, options);
 
-    const powderTotal = powderPrices[options.powder] || 0;
-
-    const unit = Number(p.price) + addonTotal + powderTotal;
+    const groupsHTML = getApplicableGroups(product)
+        .map(group => renderOptionGroup(group))
+        .join("");
 
     document.getElementById("drawerContent").innerHTML = `
 
         <div class="drawer-product">
 
-            <img src="${p.image || ""}" alt="${p.name}">
+            <img
+                src="${product.image || ""}"
+                alt="${product.name}"
+            >
 
             <div>
-                <h3>${p.name}</h3>
-                <p>${p.desc || ""}</p>
+                <h3>${product.name}</h3>
+                <p>${product.desc || ""}</p>
 
                 <p style="margin-top:8px;color:#526b48;font-weight:bold">
-                    ${money(p.price)}
+                    ${money(product.price)}
                 </p>
             </div>
 
         </div>
 
-        ${group("Drink size", "size", ["Regular"])}
-
-   ${isMatchaProduct(p) ? group(
-    "Matcha powder",
-    "powder",
-    ["Kiku", "Hisui", "Tsubaki"],
-    {
-        "Kiku": "Included",
-        "Hisui": "+RM2.00",
-        "Tsubaki": "+RM4.00"
-    },
-    {
-        "Kiku": "Slightly bitter",
-        "Hisui": "Creamy",
-        "Tsubaki": "Nutty"
-    }
-) : ""}
-
-        ${group("Sweetness level", "sweet", [
-            "0%", "25%", "50%", "75%", "Normal"
-        ])}
-
-        ${group("Ice level", "ice", [
-            "No ice", "Less ice", "Regular"
-        ])}
-
-        <div class="option-group">
-
-            <div class="option-heading">
-                Add-ons
-                <span class="required">OPTIONAL</span>
-            </div>
-
-            ${Object.keys(addonPrices).map(addon => `
-                <label class="addon">
-
-                    <span>
-                        ${addon}
-
-                        <small style="color:#858980">
-                            · +${money(addonPrices[addon])}
-                        </small>
-                    </span>
-
-                    <input
-                        type="checkbox"
-                        ${options.addons.includes(addon) ? "checked" : ""}
-                        onchange="toggleAddon('${addon}',this.checked)"
-                    >
-
-                </label>
-            `).join("")}
-
-        </div>
+        ${groupsHTML}
 
         <div class="option-group">
 
@@ -602,35 +577,94 @@ function renderDrawer() {
     `;
 }
 
+
 // ==========================================
-// OPTION GROUP
+// RENDER ONE OPTION GROUP
 // ==========================================
 
-function group(title, key, values, prices = {}, descriptions = {}) {
+function renderOptionGroup(group) {
+    const selectedValue = options[group.key];
+
+    const isMultiple = group.type === "multiple";
+
+    const requiredText = group.required
+        ? "REQUIRED"
+        : "OPTIONAL";
+
+    if (isMultiple) {
+        return `
+            <div class="option-group">
+
+                <div class="option-heading">
+                    ${group.title}
+                    <span class="required">${requiredText}</span>
+                </div>
+
+                ${group.values.map(value => {
+                    const checked = Array.isArray(selectedValue) &&
+                        selectedValue.includes(value.name);
+
+                    return `
+                        <label class="addon">
+
+                            <span>
+                                ${value.name}
+
+                                <small style="color:#858980">
+                                    ${Number(value.price) > 0
+                                        ? "· +" + money(value.price)
+                                        : ""}
+                                </small>
+
+                                ${value.description ? `
+                                    <small class="choice-description">
+                                        ${value.description}
+                                    </small>
+                                ` : ""}
+                            </span>
+
+                            <input
+                                type="checkbox"
+                                ${checked ? "checked" : ""}
+                                onchange="toggleOption('${group.key}','${value.name}',this.checked)"
+                            >
+
+                        </label>
+                    `;
+                }).join("")}
+
+            </div>
+        `;
+    }
+
     return `
         <div class="option-group">
 
             <div class="option-heading">
-                ${title}
-                <span class="required">REQUIRED</span>
+                ${group.title}
+                <span class="required">${requiredText}</span>
             </div>
 
             <div class="choices">
 
-                ${values.map(value => `
+                ${group.values.map(value => `
                     <button
-                        class="choice ${options[key] === value ? "selected" : ""}"
-                        onclick="selectOption('${key}','${value}')"
+                        class="choice ${selectedValue === value.name ? "selected" : ""}"
+                        onclick="selectOption('${group.key}','${value.name}')"
                     >
-                        ${value}
+                        ${value.name}
 
                         <small>
-                            ${prices[value] === undefined ? "" : prices[value]}
+                            ${Number(value.price) > 0
+                                ? "+" + money(value.price)
+                                : Number(value.price) === 0 && group.key === "powder"
+                                    ? "Included"
+                                    : ""}
                         </small>
 
-                        ${descriptions[value] ? `
+                        ${value.description ? `
                             <span class="choice-description">
-                                ${descriptions[value]}
+                                ${value.description}
                             </span>
                         ` : ""}
 
@@ -642,32 +676,65 @@ function group(title, key, values, prices = {}, descriptions = {}) {
         </div>
     `;
 }
-// SELECT OPTIONS
+
+
+// ==========================================
+// SELECT SINGLE OPTION
 // ==========================================
 
 function selectOption(key, value) {
+    const group = optionGroups.find(item =>
+        item.key === key
+    );
+
+    if (!group || group.type === "multiple") return;
+
+    if (!group.values.some(item => item.name === value)) {
+        return;
+    }
+
     options[key] = value;
 
     renderDrawer();
 }
 
 
-function toggleAddon(addon, on) {
-    if (!Object.hasOwn(addonPrices, addon)) return;
+// ==========================================
+// SELECT MULTIPLE OPTIONS
+// ==========================================
 
-    if (on && !options.addons.includes(addon)) {
-        options.addons.push(addon);
+function toggleOption(key, value, on) {
+    const group = optionGroups.find(item =>
+        item.key === key
+    );
+
+    if (!group || group.type !== "multiple") return;
+
+    if (!group.values.some(item => item.name === value)) {
+        return;
+    }
+
+    if (!Array.isArray(options[key])) {
+        options[key] = [];
+    }
+
+    if (on && !options[key].includes(value)) {
+        options[key].push(value);
     }
 
     if (!on) {
-        options.addons = options.addons.filter(
-            item => item !== addon
+        options[key] = options[key].filter(item =>
+            item !== value
         );
     }
 
     renderDrawer();
 }
 
+
+// ==========================================
+// QUANTITY
+// ==========================================
 
 function changeQty(n) {
     qty = Math.max(1, Math.min(20, qty + n));
@@ -680,15 +747,38 @@ function changeQty(n) {
 // PRICE CALCULATION
 // ==========================================
 
-function unitPrice(p, o) {
-    const addonTotal = (o.addons || []).reduce(
-        (sum, addon) => sum + (addonPrices[addon] || 0),
-        0
-    );
+function unitPrice(product, selectedOptions) {
+    const optionTotal = getApplicableGroups(product)
+        .reduce((total, group) => {
+            return total + getOptionPrice(
+                group,
+                selectedOptions[group.key]
+            );
+        }, 0);
 
-    const powderTotal = powderPrices[o.powder] || 0;
+    return Number(product.price) + optionTotal;
+}
 
-    return Number(p.price) + addonTotal + powderTotal;
+
+// ==========================================
+// OPTION SUMMARY
+// ==========================================
+
+function optionSummary(itemOptions = {}) {
+    const parts = [];
+
+    optionGroups.forEach(group => {
+        const value = itemOptions[group.key];
+
+        if (Array.isArray(value) && value.length) {
+            parts.push(`${group.title}: ${value.join(", ")}`);
+
+        } else if (value && !Array.isArray(value)) {
+            parts.push(`${group.title}: ${value}`);
+        }
+    });
+
+    return parts;
 }
 
 
@@ -697,19 +787,15 @@ function unitPrice(p, o) {
 // ==========================================
 
 function addToCart() {
+    if (!selected) return;
+
     const item = {
         id: selected.id,
         name: selected.name,
         image: selected.image || "",
         price: unitPrice(selected, options),
 
-        options: {
-            ...options,
-            size: "Regular",
-            addons: options.addons.filter(
-                addon => Object.hasOwn(addonPrices, addon)
-            )
-        },
+        options: JSON.parse(JSON.stringify(options)),
 
         qty
     };
@@ -725,67 +811,8 @@ function addToCart() {
     updateCart();
 
     closeDrawer();
-
 }
 
-
-// ==========================================
-// ADD TO BAG CONFIRMATION
-// ==========================================
-
-function showAddedToBag(item, isEditing = false) {
-    let toast = document.getElementById("bagToast");
-
-    if (!toast) {
-        toast = document.createElement("div");
-        toast.id = "bagToast";
-        toast.className = "bag-toast";
-        toast.setAttribute("role", "status");
-        document.body.appendChild(toast);
-    }
-
-    toast.innerHTML = `
-        <span class="bag-toast-check">✓</span>
-        <span>
-            <strong>${isEditing ? "Bag updated" : "Added to bag"}</strong>
-            · ${item.qty > 1 ? `${item.qty} × ` : ""}${item.name}
-        </span>
-    `;
-
-    toast.classList.remove("show");
-
-    requestAnimationFrame(() => {
-        toast.classList.add("show");
-    });
-
-    clearTimeout(toast.hideTimer);
-
-    toast.hideTimer = setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2200);
-}
-
-
-// ==========================================
-// CART COUNTER ANIMATION
-// ==========================================
-
-function animateCart() {
-    const counter = document.getElementById("cartCount");
-
-    if (!counter) return;
-
-    counter.classList.remove("cart-pop");
-
-    void counter.offsetWidth;
-
-    counter.classList.add("cart-pop");
-}
-
-
-// ==========================================
-// FLOATING ORDER NOW BUTTON
-// ==========================================
 
 // ==========================================
 // FLOATING ORDER NOW BUTTON
@@ -880,7 +907,7 @@ function openCart(fromPop = false, replace = false) {
                     );
 
                     const image = item.image || product?.image || "";
-                    const itemOptions = item.options || {};
+                    const summary = optionSummary(item.options || {});
 
                     return `
                         <div class="cart-item">
@@ -896,21 +923,9 @@ function openCart(fromPop = false, replace = false) {
                                     ${item.name} × ${item.qty}
                                 </h3>
 
-                                <p>
-                                    Regular ·
-                                    ${itemOptions.sweet || "Normal"} sweetness ·
-                                    ${itemOptions.ice || "Regular"} ice
-                                </p>
-
-                                ${itemOptions.powder ? `
-                                    <p>
-                                        Matcha powder: ${itemOptions.powder}
-                                    </p>
-                                ` : ""}
-
-                                <p>
-                                    ${(itemOptions.addons || []).join(", ") || "No add-ons"}
-                                </p>
+                                ${summary.map(text => `
+                                    <p>${text}</p>
+                                `).join("")}
 
                                 <div class="price">
                                     ${money(item.price * item.qty)}
@@ -999,7 +1014,6 @@ function removeCart(index) {
 // ==========================================
 
 async function sendDiscordOrder(order) {
-
     const response = await fetch(API_URL, {
         method: "POST",
 
@@ -1159,7 +1173,6 @@ function openHistory(fromPop = false, replace = false) {
         "ORDER HISTORY";
 
     if (!orderHistory.length) {
-
         document.getElementById("drawerContent").innerHTML = `
 
             <div class="empty">
@@ -1169,7 +1182,6 @@ function openHistory(fromPop = false, replace = false) {
         `;
 
     } else {
-
         document.getElementById("drawerContent").innerHTML =
 
             orderHistory.map((order, index) => `
@@ -1193,26 +1205,16 @@ function openHistory(fromPop = false, replace = false) {
                     </div>
 
                     ${order.items.map(item => {
-                        const itemOptions = item.options || {};
+                        const summary = optionSummary(item.options || {});
 
                         return `
                             <p style="font-size:12px;line-height:1.6;margin:8px 0">
 
                                 ${item.qty} × ${item.name}
 
-                                <br>
-
-                                Regular ·
-                                ${itemOptions.sweet || "Normal"} sweetness ·
-                                ${itemOptions.ice || "Regular"} ice
-
-                                ${itemOptions.powder
-                                    ? "<br>Matcha powder: " + itemOptions.powder
-                                    : ""}
-
-                                ${(itemOptions.addons || []).length
-                                    ? "<br>Add-ons: " + itemOptions.addons.join(", ")
-                                    : ""}
+                                ${summary.map(text => `
+                                    <br>${text}
+                                `).join("")}
 
                             </p>
                         `;
@@ -1269,34 +1271,27 @@ function reorder(index) {
 
     if (!order) return;
 
-    cart = JSON.parse(JSON.stringify(order.items));
+    cart = JSON.parse(JSON.stringify(order.items))
+        .filter(item => menu.some(product =>
+            String(product.id) === String(item.id)
+        ));
 
     cart.forEach(item => {
-        item.options = item.options || {};
-
-        item.options.size = "Regular";
-
-        item.options.addons = (item.options.addons || []).filter(
-            addon => Object.hasOwn(addonPrices, addon)
+        const product = menu.find(p =>
+            String(p.id) === String(item.id)
         );
 
-        const product = menu.find(
-            p => String(p.id) === String(item.id)
+        item.options = prepareOptions(
+            product,
+            item.options || {}
         );
 
-        if (product) {
-            item.image = product.image || "";
+        item.image = product.image || "";
 
-            if (isMatchaProduct(product)) {
-                if (powderPrices[item.options.powder] === undefined) {
-                    item.options.powder = "Kiku";
-                }
-            } else {
-                delete item.options.powder;
-            }
-
-            item.price = unitPrice(product, item.options);
-        }
+        item.price = unitPrice(
+            product,
+            item.options
+        );
     });
 
     updateCart();
@@ -1320,6 +1315,7 @@ function clearHistory() {
     modal.id = "clearHistoryModal";
 
     modal.innerHTML = `
+
         <div class="confirm-box">
 
             <h3>Clear Order History</h3>
@@ -1351,6 +1347,7 @@ function clearHistory() {
             </div>
 
         </div>
+
     `;
 
     modal.addEventListener("click", event => {
