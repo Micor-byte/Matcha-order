@@ -62,6 +62,17 @@ const powderPrices = {
 
 
 // ==========================================
+// MATCHA POWDER DESCRIPTIONS
+// ==========================================
+
+const powderLabels = {
+    "Kiku": "Kiku (Slightly bitter)",
+    "Hisui": "Hisui (Creamy)",
+    "Tsubaki": "Tsubaki (Nutty)"
+};
+
+
+// ==========================================
 // MATCHA PRODUCT CHECK
 // ==========================================
 
@@ -492,7 +503,8 @@ function renderDrawer() {
                 "Kiku": "Included",
                 "Hisui": "+RM2.00",
                 "Tsubaki": "+RM4.00"
-            }
+            },
+            powderLabels
         ) : ""}
 
         ${group("Sweetness level", "sweet", [
@@ -572,7 +584,7 @@ function renderDrawer() {
 // OPTION GROUP
 // ==========================================
 
-function group(title, key, values, prices = {}) {
+function group(title, key, values, prices = {}, labels = {}) {
     return `
 
         <div class="option-group">
@@ -591,7 +603,7 @@ function group(title, key, values, prices = {}) {
                         onclick="selectOption('${key}','${value}')"
                     >
 
-                        ${value}
+                        ${labels[value] || value}
 
                         <small>
                             ${prices[value] === undefined ? "" : prices[value]}
