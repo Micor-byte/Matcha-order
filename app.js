@@ -1,9 +1,7 @@
-
 // ==========================================
 // CAVE MATCHA ORDERING SYSTEM
 // Cloudflare Pages + Discord Version
 // ==========================================
-
 
 // ==========================================
 // CLOUDFLARE PAGES API
@@ -11,13 +9,61 @@
 
 const API_URL = "/api/order";
 
+// ==========================================
+// ADD TO BAG FEEDBACK STYLES
+// ==========================================
+
+const feedbackStyles = document.createElement("style");
+
+feedbackStyles.textContent = `
+    .bag-toast {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translate(-50%, 20px);
+        background: #26352a;
+        color: white;
+        padding: 13px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 99999;
+        white-space: nowrap;
+    }
+
+    .bag-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    .bag-toast-check {
+        color: #a8d5a0;
+        font-size: 17px;
+    }
+
+    @keyframes cartPop {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.35); }
+        100% { transform: scale(1); }
+    }
+
+    .cart-pop {
+        animation: cartPop 0.35s ease;
+    }
+`;
+
+document.head.appendChild(feedbackStyles);
 
 // ==========================================
 // PRODUCT DATA
 // ==========================================
 
 let menu = [];
-
 
 // ==========================================
 // ORDER STATE
@@ -31,14 +77,12 @@ let options = {};
 
 let currentCategory = "all";
 
-
 // ==========================================
 // ORDER HISTORY
 // ==========================================
 
 const HISTORY_KEY = "caveMatchaOrders";
 let orderHistory = loadOrderHistory();
-
 
 // ==========================================
 // ADD-ON PRICES
@@ -48,7 +92,6 @@ const addonPrices = {
     "Extra matcha": 3,
     "Extra milk": 2
 };
-
 
 // ==========================================
 // MATCHA POWDER PRICES
@@ -60,18 +103,6 @@ const powderPrices = {
     "Tsubaki": 4
 };
 
-
-// ==========================================
-// MATCHA POWDER DESCRIPTIONS
-// ==========================================
-
-const powderLabels = {
-    "Kiku": "Kiku (Slightly bitter)",
-    "Hisui": "Hisui (Creamy)",
-    "Tsubaki": "Tsubaki (Nutty)"
-};
-
-
 // ==========================================
 // MATCHA PRODUCT CHECK
 // ==========================================
@@ -81,7 +112,6 @@ function isMatchaProduct(product) {
         .trim()
         .toLowerCase() === "matcha";
 }
-
 
 // ==========================================
 // LOAD PRODUCTS FROM products.json
@@ -129,7 +159,6 @@ async function loadProducts() {
     }
 }
 
-
 // ==========================================
 // ORDER HISTORY
 // ==========================================
@@ -148,7 +177,6 @@ function loadOrderHistory() {
     }
 }
 
-
 function saveHistory() {
     try {
         localStorage.setItem(
@@ -164,7 +192,6 @@ function saveHistory() {
     }
 }
 
-
 // ==========================================
 // GENERATE FOUR-DIGIT COLLECTION CODE
 // ==========================================
@@ -177,7 +204,6 @@ function generateOrderCode() {
     return String(random[0] % 10000).padStart(4, "0");
 }
 
-
 // ==========================================
 // HELPERS
 // ==========================================
@@ -185,7 +211,6 @@ function generateOrderCode() {
 function money(n) {
     return "RM" + Number(n).toFixed(2);
 }
-
 
 // ==========================================
 // BROWSER BACK BUTTON NAVIGATION
@@ -210,15 +235,15 @@ function navigateDrawer(page, mode = "push", data = {}) {
     }
 }
 
-
 function hideDrawer() {
     document.getElementById("overlay").classList.remove("show");
 
     document.getElementById("drawer").classList.remove("show");
 
     drawerPage = "menu";
-}
 
+    updateFloatingOrderButton();
+}
 
 function renderPreviousPage(state) {
     if (!state || !state.caveMatcha) {
@@ -257,11 +282,9 @@ function renderPreviousPage(state) {
     }
 }
 
-
 window.addEventListener("popstate", event => {
     renderPreviousPage(event.state);
 });
-
 
 // ==========================================
 // AUTOMATIC CATEGORY GENERATION
@@ -312,7 +335,6 @@ function renderCategories() {
     });
 }
 
-
 // ==========================================
 // CATEGORY FILTER
 // ==========================================
@@ -335,7 +357,6 @@ function filter(category, element) {
 
     renderProducts(category);
 }
-
 
 // ==========================================
 // DISPLAY PRODUCTS
@@ -401,7 +422,6 @@ function renderProducts(category = currentCategory) {
     `).join("");
 }
 
-
 // ==========================================
 // PRODUCT CUSTOMISATION
 // ==========================================
@@ -459,7 +479,6 @@ function openProduct(id, index = -1, fromPop = false) {
     showDrawer();
 }
 
-
 // ==========================================
 // RENDER CUSTOMISATION
 // ==========================================
@@ -495,17 +514,21 @@ function renderDrawer() {
 
         ${group("Drink size", "size", ["Regular"])}
 
-        ${isMatchaProduct(p) ? group(
-            "Matcha powder",
-            "powder",
-            ["Kiku", "Hisui", "Tsubaki"],
-            {
-                "Kiku": "Included",
-                "Hisui": "+RM2.00",
-                "Tsubaki": "+RM4.00"
-            },
-            powderLabels
-        ) : ""}
+   ${isMatchaProduct(p) ? group(
+    "Matcha powder",
+    "powder",
+    ["Kiku", "Hisui", "Tsubaki"],
+    {
+        "Kiku": "Included",
+        "Hisui": "+RM2.00",
+        "Tsubaki": "+RM4.00"
+    },
+    {
+        "Kiku": "Slightly bitter, classic matcha taste.",
+        "Hisui": "Creamy, smooth and mellow.",
+        "Tsubaki": "Nutty and distinctive."
+    }
+) : ""}
 
         ${group("Sweetness level", "sweet", [
             "0%", "25%", "50%", "75%", "Normal"
@@ -579,14 +602,12 @@ function renderDrawer() {
     `;
 }
 
-
 // ==========================================
 // OPTION GROUP
 // ==========================================
 
-function group(title, key, values, prices = {}, labels = {}) {
+function group(title, key, values, prices = {}, descriptions = {}) {
     return `
-
         <div class="option-group">
 
             <div class="option-heading">
@@ -597,31 +618,30 @@ function group(title, key, values, prices = {}, labels = {}) {
             <div class="choices">
 
                 ${values.map(value => `
-
                     <button
                         class="choice ${options[key] === value ? "selected" : ""}"
                         onclick="selectOption('${key}','${value}')"
                     >
-
-                        ${labels[value] || value}
+                        ${value}
 
                         <small>
                             ${prices[value] === undefined ? "" : prices[value]}
                         </small>
 
-                    </button>
+                        ${descriptions[value] ? `
+                            <span class="choice-description">
+                                ${descriptions[value]}
+                            </span>
+                        ` : ""}
 
+                    </button>
                 `).join("")}
 
             </div>
 
         </div>
-
     `;
 }
-
-
-// ==========================================
 // SELECT OPTIONS
 // ==========================================
 
@@ -694,7 +714,9 @@ function addToCart() {
         qty
     };
 
-    if (editingIndex >= 0) {
+    const isEditing = editingIndex >= 0;
+
+    if (isEditing) {
         cart[editingIndex] = item;
     } else {
         cart.push(item);
@@ -703,6 +725,109 @@ function addToCart() {
     updateCart();
 
     closeDrawer();
+
+    showAddedToBag(item, isEditing);
+    animateCart();
+}
+
+
+// ==========================================
+// ADD TO BAG CONFIRMATION
+// ==========================================
+
+function showAddedToBag(item, isEditing = false) {
+    let toast = document.getElementById("bagToast");
+
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "bagToast";
+        toast.className = "bag-toast";
+        toast.setAttribute("role", "status");
+        document.body.appendChild(toast);
+    }
+
+    toast.innerHTML = `
+        <span class="bag-toast-check">✓</span>
+        <span>
+            <strong>${isEditing ? "Bag updated" : "Added to bag"}</strong>
+            · ${item.qty > 1 ? `${item.qty} × ` : ""}${item.name}
+        </span>
+    `;
+
+    toast.classList.remove("show");
+
+    requestAnimationFrame(() => {
+        toast.classList.add("show");
+    });
+
+    clearTimeout(toast.hideTimer);
+
+    toast.hideTimer = setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2200);
+}
+
+
+// ==========================================
+// CART COUNTER ANIMATION
+// ==========================================
+
+function animateCart() {
+    const counter = document.getElementById("cartCount");
+
+    if (!counter) return;
+
+    counter.classList.remove("cart-pop");
+
+    void counter.offsetWidth;
+
+    counter.classList.add("cart-pop");
+}
+
+
+// ==========================================
+// FLOATING ORDER NOW BUTTON
+// ==========================================
+
+function updateFloatingOrderButton() {
+    let button = document.getElementById("floatingOrderButton");
+
+    if (!button) {
+        button = document.createElement("button");
+
+        button.id = "floatingOrderButton";
+        button.className = "floating-order-button";
+        button.type = "button";
+        button.setAttribute("aria-label", "Open your order");
+
+        button.innerHTML = `
+            <span>ORDER NOW</span>
+            <span id="floatingOrderTotal"></span>
+        `;
+
+        button.addEventListener("click", () => openCart());
+
+        document.body.appendChild(button);
+    }
+
+    const total = cart.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+    );
+
+    const drawer = document.getElementById("drawer");
+    const drawerOpen = drawer && drawer.classList.contains("show");
+
+    const totalElement = document.getElementById("floatingOrderTotal");
+
+    if (totalElement) {
+        totalElement.textContent = money(total);
+    }
+
+    button.classList.toggle(
+        "show",
+        cart.length > 0 && !drawerOpen
+    );
 }
 
 
@@ -713,6 +838,8 @@ function addToCart() {
 function updateCart() {
     document.getElementById("cartCount").textContent =
         cart.reduce((sum, item) => sum + item.qty, 0);
+
+    updateFloatingOrderButton();
 }
 
 
@@ -1271,6 +1398,8 @@ function showDrawer() {
     document.getElementById("overlay").classList.add("show");
 
     document.getElementById("drawer").classList.add("show");
+
+    updateFloatingOrderButton();
 }
 
 
