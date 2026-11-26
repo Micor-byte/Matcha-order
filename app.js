@@ -398,7 +398,7 @@ function filter(category, element) {
 
     document.getElementById("categoryTitle").textContent =
         category === "all"
-            ? "Our menu"
+            ? "Our Menu"
             : category.charAt(0).toUpperCase() + category.slice(1);
 
     renderProducts(category);
