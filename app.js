@@ -504,6 +504,14 @@ function openProduct(id, index = -1, fromPop = false) {
     );
 
     showDrawer();
+
+    requestAnimationFrame(() => {
+        const drawer = document.getElementById("drawer");
+        const content = document.getElementById("drawerContent");
+
+        if (drawer) drawer.scrollTop = 0;
+        if (content) content.scrollTop = 0;
+    });
 }
 
 
