@@ -1007,3 +1007,21 @@ main {
         width: calc(100% - 30px);
     }
 }
+
+.floating-order-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 50%;
+    background: #a8d5a0;
+    color: #26352a;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+}
