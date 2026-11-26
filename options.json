@@ -43,11 +43,11 @@
       "type": "single",
       "required": true,
       "values": [
+        { "name": "Normal", "price": 0 },
         { "name": "0%", "price": 0 },
         { "name": "25%", "price": 0 },
         { "name": "50%", "price": 0 },
-        { "name": "75%", "price": 0 },
-        { "name": "Normal", "price": 0 }
+        { "name": "75%", "price": 0 }
       ]
     },
     {
@@ -56,9 +56,10 @@
       "type": "single",
       "required": true,
       "values": [
+         { "name": "Regular", "price": 0 },
         { "name": "No ice", "price": 0 },
-        { "name": "Less ice", "price": 0 },
-        { "name": "Regular", "price": 0 }
+        { "name": "Less ice", "price": 0 }
+       
       ]
     },
     {
