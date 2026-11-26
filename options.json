@@ -57,8 +57,9 @@
       "required": true,
       "values": [
          { "name": "Regular", "price": 0 },
-        { "name": "No ice", "price": 0 },
-        { "name": "Less ice", "price": 0 }
+        { "name": "Less ice", "price": 0 },
+        { "name": "No ice", "price": 0 }
+        
        
       ]
     },
