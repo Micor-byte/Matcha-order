@@ -524,9 +524,9 @@ function renderDrawer() {
         "Tsubaki": "+RM4.00"
     },
     {
-        "Kiku": "Slightly bitter",
-        "Hisui": "Creamy",
-        "Tsubaki": "Nutty"
+        "Kiku": "Slightly bitter, classic matcha taste.",
+        "Hisui": "Creamy, smooth and mellow.",
+        "Tsubaki": "Nutty and distinctive."
     }
 ) : ""}
 
@@ -726,8 +726,6 @@ function addToCart() {
 
     closeDrawer();
 
-    showAddedToBag(item, isEditing);
-    animateCart();
 }
 
 
@@ -789,6 +787,10 @@ function animateCart() {
 // FLOATING ORDER NOW BUTTON
 // ==========================================
 
+// ==========================================
+// FLOATING ORDER NOW BUTTON
+// ==========================================
+
 function updateFloatingOrderButton() {
     let button = document.getElementById("floatingOrderButton");
 
@@ -803,6 +805,7 @@ function updateFloatingOrderButton() {
         button.innerHTML = `
             <span>ORDER NOW</span>
             <span id="floatingOrderTotal"></span>
+            <span id="floatingOrderCount" class="floating-order-count">0</span>
         `;
 
         button.addEventListener("click", () => openCart());
@@ -815,13 +818,23 @@ function updateFloatingOrderButton() {
         0
     );
 
+    const quantity = cart.reduce(
+        (sum, item) => sum + item.qty,
+        0
+    );
+
     const drawer = document.getElementById("drawer");
     const drawerOpen = drawer && drawer.classList.contains("show");
 
     const totalElement = document.getElementById("floatingOrderTotal");
+    const countElement = document.getElementById("floatingOrderCount");
 
     if (totalElement) {
         totalElement.textContent = money(total);
+    }
+
+    if (countElement) {
+        countElement.textContent = quantity;
     }
 
     button.classList.toggle(
