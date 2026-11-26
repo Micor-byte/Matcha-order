@@ -524,9 +524,9 @@ function renderDrawer() {
         "Tsubaki": "+RM4.00"
     },
     {
-        "Kiku": "Slightly bitter, classic matcha taste.",
-        "Hisui": "Creamy, smooth and mellow.",
-        "Tsubaki": "Nutty and distinctive."
+        "Kiku": "Slightly bitter",
+        "Hisui": "Creamy",
+        "Tsubaki": "Nutty"
     }
 ) : ""}
 
