@@ -526,6 +526,20 @@ main {
 }
 
 /* ==========================================
+   MATCHA POWDER DESCRIPTIONS
+========================================== */
+
+.choice-description {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: var(--muted);
+}
+
+/* ==========================================
    ADD-ONS
 ========================================== */
 
@@ -847,6 +861,73 @@ main {
 }
 
 /* ==========================================
+   FLOATING ORDER NOW BUTTON
+========================================== */
+
+.floating-order-button {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+
+    width: calc(100% - 40px);
+    max-width: 500px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 17px 22px;
+
+    background: var(--green);
+    color: #ffffff;
+
+    border: 1px solid var(--green);
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+
+    cursor: pointer;
+    z-index: 9;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    box-shadow: 0 4px 16px rgba(41, 45, 37, 0.16);
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease,
+        visibility 0.25s ease,
+        background 0.2s ease;
+}
+
+.floating-order-button.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+}
+
+.floating-order-button:hover {
+    background: var(--dark);
+    border-color: var(--dark);
+}
+
+.floating-order-button:active {
+    transform: translate(-50%, 0) scale(0.98);
+}
+
+#floatingOrderTotal {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+/* ==========================================
    RESPONSIVE: TABLETS AND DESKTOP
 ========================================== */
 
@@ -919,5 +1000,10 @@ main {
 
     .product-desc {
         font-size: 10px;
+    }
+
+    .floating-order-button {
+        bottom: 18px;
+        width: calc(100% - 30px);
     }
 }
